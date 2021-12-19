@@ -1,0 +1,28 @@
+    \vspace{-10pt}
+\begin{table}[!htbp]
+\small
+\begin{tabular}{|l|l|l|l|l|l|}
+\hline
+Address & bitsize & Description                                & Default value & Unit         & Value     \\ \hline \hline
+0xE0    & 8           & Lengh of Pon                               & 0x14                 & 1/128us         & 200 ns    \\ \hline
+0xD0    & 8           & Lengh between Pon and Poff                 & 0x0A                 & 1/128us         & 100 ns    \\ \hline
+0xE1    & 8           & Lengh of Poff MSB                          &                      &              &           \\ \hline
+0xE2    & 8           & Lengh of Poff LSB                          & 0xC8                 & 1/128us         & 2000 ns   \\ \hline
+0xE3    & 8           & Delay between Poff and Acq (MSB)    & 0x02BC               & 1/128us         & 7000 ns   \\ \hline
+0xE4    & 8           & Delay between Poff and Acq (LSB)    &                      &              &           \\ \hline
+0xE5    & 8           & Lengh of acquisition MSB                   & 0x32C8               & 1/128us         & 130 us    \\ \hline
+0xE6    & 8           & Lengh of acquisition LSB                   &                      &              &           \\ \hline
+0xE7    & 8           & Period of one cycle MSB                    & 0x186A0              & 1/128us         & 1 ms      \\ \hline
+0xE8    & 8           & Period of one cycle 15 to 8                &                      &              &           \\ \hline
+0xE9    & 8           & Period of one cycle LSB                    &                      &              &           \\ \hline
+0xEA    & 1           & Software Trig : Auto clear                 & 0                    & N/A          &           \\ \hline
+0xEB    & 1           & 0: single mode 1 continuous mode           & 0                    & N/A          &           \\ \hline
+0xEC    & 8           & Voltage gain control: 0V to 1V             & 0x11                 & 0,004        & 68 mV     \\ \hline
+0xED    & 8           & Frequency of ADC acquisition               & 0x03                 & 64/(1+f) MHz & 16 MHz    \\ \hline
+0xEE    & 8           & How many cycles in continuous mode        & 0x0A                 & cycles       & 10 cycles \\ \hline
+0xEF    & 1           & Sofware memory reset: set to 1; auto clear & 0                    &              &           \\ \hline \hline
+\end{tabular}
+ \vspace{4pt}
+  \caption{The different registers in the current .bin binary}
+    \vspace{-20pt}
+\end{table}

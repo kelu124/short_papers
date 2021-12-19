@@ -1,0 +1,333 @@
+\documentclass{article}
+
+
+%                                                           _..._                   
+%                                                        .-'_..._''.                
+%              _..._                             .--.  .' .'      '.\    .          
+%            .'     '.                           |__| / .'             .'|          
+%           .   .-.   .    .-''` ''-.    .-,.--. .--.. '             .'  |          
+%           |  '   '  |  .'          '.  |  .-. ||  || |            <    |          
+%   _    _  |  |   |  | /              ` | |  | ||  || |             |   | ____     
+%  | '  / | |  |   |  |'                '| |  | ||  |. '             |   | \ .'     
+% .' | .' | |  |   |  ||         .-.    || |  '- |  | \ '.          .|   |/  .      
+% /  | /  | |  |   |  |.        |   |   .| |     |__|  '. `._____.-'/|    /\  \     
+%|   `'.  | |  |   |  | .       '._.'  / | |             `-.______ / |   |  \  \    
+%'   .'|  '/|  |   |  |  '._         .'  |_|                      `  '    \  \  \   
+% `-'  `--' '--'   '--'     '-....-'`                               '------'  '---' 
+
+\usepackage{arxiv}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesettingf
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{lipsum}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{wrapfig}
+
+\usepackage[export]{adjustbox}
+
+\usepackage{xcolor}         % http://ctan.org/pkg/xcolor
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!50!red,
+  urlcolor=green!70!black
+}
+
+\title{un0rick: open-source ultrasound fpga board}
+
+\author{
+  Luc Jonveaux\thanks{More on the website \url{http://un0rick.cc}. This paper has its on Zenodo DOI  \href{http://doi.org/10.5281/zenodo.3364559}{10.5281/zenodo.3364559} } \\
+  Tinkerer, Milly le Meugon, France\\
+  \texttt{contact@un0rick.cc} \\
+}
+
+%% Wrapping https://tex.stackexchange.com/questions/55161/how-to-arrange-image-and-text-to-appear-side-by-side
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Non destructive testing and imaging ultrasound have been around since the ’50s. Many ultrasound open-source projects are emerging, mostly focusing on image processing - while hardware has been left behind. Several teams have produced successful designs to be used on commercial US scanners, but they are not cheap, and are difficult to access. I couldn’t find designs to play with, that would be affordable or open, so I decided to make one for makers, researchers and hackers.
+
+\emph{ This PDF is also a ZIP that contains the sources to the hardware and some data too, don't hesitate to have a look. Just rename the file from .PDF to .ZIP and you're ready to go }.
+\end{abstract}
+
+\keywords{open-source \and ultrasound \and hardware \and ice40 \and fpga  }
+
+
+
+%                .-') _  .-') _   _  .-')               
+%               ( OO ) )(  OO) ) ( \( -O )              
+%    ,-.-') ,--./ ,--,' /     '._ ,------.  .-'),-----. 
+%    |  |OO)|   \ |  |\ |'--...__)|   /`. '( OO'  .-.  '
+%    |  |  \|    \|  | )'--.  .--'|  /  | |/   |  | |  |
+%    |  |(_/|  .     |/    |  |   |  |_.' |\_) |  |\|  |
+%   ,|  |_.'|  |\    |     |  |   |  .  '.'  \ |  | |  |
+%  (_|  |   |  | \   |     |  |   |  |\  \    `'  '-'  '
+%    `--'   `--'  `--'     `--'   `--' '--'     `-----' 
+
+
+\section{Overview}
+
+This wonderful board has been designed to provide a curious tinkerer with the basis to play with, and understand, ultrasound NDT and imaging bases.
+
+\begin{figure}[h!]
+\centering
+  \includegraphics[width=0.98\linewidth]{images/un0desc.png}
+  \caption{What is on the board ?}
+  \label{fig:board}
+\end{figure}
+
+It has not been designed with cost-efficiency, size optimization and having the lightest BOM - instead, it tries to be an understandable assembly of the different blocks that constitute a pulse-echo system : a High Voltage (HV) source, a pulser, a protection, a Time Compensation Amplifier, a good ADC, and, at the heart, a cheap but interesting FPGA to provide with all the controls and interfaces. There are also a couple of IOs, and some space for a Raspberry header - so that you can use with your favorite card-sized computer, but also with any chip with an available SPI bus.
+
+\subsection{Concept}
+ 
+\input{design.tex}
+
+\subsection{What about the specifications of the board ?}
+
+\begin{wrapfigure}{l}{0.21\textwidth}
+  \vspace{-10pt}
+  \begin{center}
+    \includegraphics[width=0.21\textwidth]{images/wild_electronics.jpg}
+  \end{center}
+    \vspace{-13pt}
+  \caption{Old news}
+  \vspace{-35pt}
+\end{wrapfigure}
+
+\textbf{FPGA:} Lattice iCE40HX4K - TQFP 144 Package: use for quite a number of IOs, though no RAM, and compatibility with Clifford Wolf's \href{http://www.clifford.at/yosys/}{Yosys} Open SYnthesis Suite \cite{yosys}. 
+
+\textbf{Memory}    8 Mbit SRAM, 10ns, 512 k x 16 (equivalent 65 full lines of 120us at 64Msps or 840 lines of 120us at 10Msps, 8 bits), as well as 8 Mb SPI Flash for FPGA configuration.
+
+\textbf{Ultrasound processing: } A VGA (AD8331) controled by DAC, with a pulser: MD1210 + TC6320, and a 65Msps ADC (ADC10065).
+        
+\textbf{Extensibility:} 2 x PMOD connectors, two SMA plug for the piezos (with capacity to separate the TX and RX paths) as well as a general header for RPi GPIO
+
+\textbf{User Interfaces:} 2 x PMOD for IOs, 3 push button (with software noise debouncing) and jumpers for high voltage selection
+
+\textbf{Input Voltage: }5 V from RPi or USB, uses 350mA-450mA at 5V with a raspberry on. The FPGA and logic operate at at 3.3 V, still with high voltage at 25V, 50V, 75V
+
+\section{Where to find the latest sources} 
+
+\begin{wrapfigure}{r}{0.16\textwidth}
+  \vspace{-20pt}
+  \begin{center}
+    \includegraphics[width=0.16\textwidth]{images/reflectoscope22.jpg}
+  \end{center}
+    \vspace{-13pt}
+  \caption{NDT}
+  \vspace{-55pt}
+\end{wrapfigure}
+
+The latest sources of the hardware as well as software are available at \url{https://github.com/kelu124/un0rick/}. However, this PDF also doubles as an archive (you can rename the .pdf as a .zip, and you'll see), and contains, in short: a set of gerbers and BOM, some VHDL code, a basic FPGA binary ready to be used, and a python library to operate the board from a Raspberry Pi. There may be some other stuff there, but I forgot what I put there.
+
+The hardware file is copied on GitHub, feel free to check it on \href{https://upverter.com/design/kelu124/c59550d3e0dcf944/un0rick-v11/}{UpVerter} though - thanks David!
+
+\section{Operation} 
+
+Okay, we know the board now. But how is it operated? The usual flow of operation is to first flash the FPGA with the right "server", configure the acquisition details, get the signal, and to process it. Let's see how to do it in more details.
+ 
+\subsection{Programming} 
+
+The first thing is to program the FPGA with its binary. The recommended binary is attached in this archive (with a .bin extension). First is to use a computer with any FPGA programming capacity, such as diamond programmer or IceProg for Linux. Don't forget to setup the the jumper (see below) for FPGA update before connecting to the USB. The FTDI should appear in you device list. You're then ready to program using your tool. The LED 6 should then be ready. The onboard flash will keep the binary in memory, so that's something that needs to be done only once.
+
+\begin{figure}[h!]
+\centering
+  \includegraphics[width=0.65\linewidth]{images/program.jpg}
+  \caption{Programming the board}
+  \label{fig:program}
+\end{figure}
+
+\subsection{Preparing} 
+
+\begin{wrapfigure}{r}{0.25\textwidth}
+  \vspace{-20pt}
+  \begin{center}
+    \includegraphics[width=0.25\textwidth]{images/aloka_ssd-1.jpg}
+  \end{center}
+    \vspace{-13pt}
+  \caption{Robotic arms}
+  \vspace{-55pt}
+\end{wrapfigure}
+
+The platform can be set up with the SPI bus, to configure the different acquisition values as well as the \href{https://github.com/kelu124/echomods/blob/master/include/experiments/auto/20180721a.md}{TGC gain}. It using the following addresses and protocol (SPI is only 8bits per CS). For each address, one needs to send 0xAA 0xXX 0xYY, with XX the register address, and YY the data one wishes to send. Register addresses start at 0xE0 and end at 0xD0 on the default bitstream. The following can be programmed:
+
+\begin{itemize}
+\item Type of acquisition (one line / set of lines)
+\item Number of lines
+\item Length of lines acquisitions
+\item Delay between acquisitions
+\item Pulse width
+\item Delay between pulse and beginning of acquisitions
+\item 200us time-gain-compensation programmable (8 bits, from 0 to Max), every 5us
+\end{itemize}
+ 
+ 
+\begin{wrapfigure}{l}{0.19\textwidth}
+  \vspace{-15pt}
+  \begin{center}
+    \includegraphics[width=0.19\textwidth]{2-Figure1-1.png}
+  \end{center}
+    \vspace{-13pt}
+  \caption{With an old endo-cavity setup}
+  \vspace{-25pt}
+\end{wrapfigure}
+
+For the TGC, the addresses start at 0x10 and end at 0x38. This corresponds to t = 0us for 0x10, and t = 200us for 0x38. Values that can be saved range from 0 to 8 bits for full amplification.
+
+The LED 6 is linked to the multi/single line status. Therefore, it is easy to check if the FPGA is ready to shoot: one can toggle the register to check if the LED blinks. It is done in pyUn0 with the \verb|test_spi| from the \verb|us_spi| class, by typing \verb|python pyUn0.py test|.
+
+The pyUn0 lib for example provides a wrapper to easily manipulates an acquisition set of parameters with a Raspberry (one just needs to leave the jumper on from Fig 3), you can also find code for an exercice of using an ESP32-based M5Stack board (check out the \verb|esp32_prog.ino| file in the archive).
+
+The python lib also provides access to objects that can be manipulated, including the time, all metadata, the signal itself, and allows for preprocessing the data according to the metadata (for example filtering the signal given the frequency and bandwidth of the element used).
+
+
+
+\newpage
+\subsection{The registers}
+
+\input{table.tex}
+
+\subsection{Acquiring and reading}
+
+If the master reads more data than the board has acquired, you will have old or incorrect values: the master has to know how many measures were done. The data is stored in RAM after the acquisition, for up to a 500k points depths. Again, the  SPI bus is used to read the ADC value., by sending for example 0x00. If the FPGA is doing an acquisition, the returned value is 0xAA, else the value is on 2x8 bits, as follows:
+
+\begin{itemize}
+\item MSB: 8th bit: MSB ID: set to 1
+\item MSB: 6-7th bit: cycle bits: to identify a line in a sequence
+\item MSB: 4-5th bits: the two inputs (TopTurn 1 and TopTurn2) in case a counter is used.
+\item MSB: 1st-3th bits: ADC 7 to 9: 3 remaining bits of acquisition
+\item LSB: 8th bit: LSB ID: set to 0
+\item LSB: 1st to 7th bits: ADC 7-0: 7 first bits of acquisition
+\end{itemize}
+
+\input{threepics.tex}
+
+\newpage
+\subsection{Processing using the pyUn0 python library}
+
+The objective of this last step is to transform the raw json, which contains the data as well as the metadata of the acquisition, into something that can be processed further - usually using Python. 
+
+Attached in this archive as well is a pyUn0.py file, as well as the data of an experiment, if you want to try. An example of this is shown in \href{https://youtu.be/rv-Ag_TcnP8}{this video}. The FPGA was already programmed. I simply used the pyUn0 wrapper by typing \verb|python pyUn0.py single| to acquire a single line, followed by \verb|python pyUn0.py process|, to process it. The result is as follows:
+
+\begin{figure}[!htbp]
+\centering
+  \includegraphics[width=0.99\linewidth]{images/20190804a-1.jpg}
+  \caption{Results of the 20190804a experiment}
+  \label{fig:20190804a}
+\end{figure}
+
+The experiment files are also in the present archive - feel free to play with those.
+
+
+\subsection{Bonus}
+
+Interestingly, it is possible to reach a signal that is sampled at 128Msps - double of the maximum speed. Do you have an idea how this is achieved? Mail me and let me know!
+
+\begin{figure}[!htbp]
+\centering
+  \includegraphics[width=0.99\linewidth]{images/128msps.png}
+  \caption{Programming the board}
+  \label{fig:128msps}
+\end{figure}
+
+\newpage \section{Last details}
+
+\paragraph{License:}
+
+This work is based on a previous TAPR project, the echOmods project. The un0rick project and its boards are open hardware and software, developed with open-source elements.
+
+Copyright kelu124 (kelu124@gmail.com) 2018
+
+\begin{itemize}
+\item The hardware is licensed under TAPR Open Hardware License (www.tapr.org/OHL)
+\item The software components are free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+\item The documentation is licensed under a Creative Commons Attribution-ShareAlike 3.0 Unported License.
+\end{itemize}
+
+
+
+\paragraph{Disclaimer}
+
+This project is distributed WITHOUT ANY EXPRESS OR IMPLIED WARRANTY, INCLUDING OF MERCHANTABILITY, SATISFACTORY QUALITY AND FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. Also:
+
+\begin{itemize}
+\item This is not a medical ultrasound scanner! It’s a development kit that can be used for pedagogical and academic purposes - possible use as a non-destructive testing (NDT) tool too, for example in metallurgical crack analysis.
+\item As in all electronics, be careful, especially with high-voltage.
+\item This is a learning by doing project, I never did something related: it’s all but a finalized product.
+\item Ultrasound raises questions. In case you build a scanner, use caution and good sense!
+\end{itemize}
+
+\paragraph{Certification}
+
+This piece of hardware is also open-hardware certified, under ID \href{https://certification.oshwa.org/fr000005.html}{FR000005}.
+
+
+
+\section{Links to go further}
+
+\begin{itemize}
+\item Come and chat : \href{https://join.slack.com/usdevkit/shared_invite/MTkxODU5MjU0NjI1LTE0OTY1ODgxMDEtMmYyZTliZDBlZA}{join the Slack channel} 
+\item The \href{https://github.com/kelu124/un0rick}{ full GitHub Repo} with more ongoing works : also \href{https://github.com/kelu124/echomods/}{a messy braindump with all experiments} 
+\item The board’s \href{https://www.tindie.com/stores/kelu124/}{Tindie shop} to get it
+\item The project \href{https://hackaday.io/project/28375-un0rick-an-ice40-ultrasound-board}{ Hackaday page} with more logs
+\item \href{https://github.com/wlmeng11/SimpleRick}{wlmeng11’s SimpleRick for a analog part board.} Clever use of RTL-sdr hardware for the acquisition !
+\item Check out the \href{https://certification.oshwa.org/fr000005.html}{OSHWA  certification link} under reference FR000005
+\item Check out \href{https://openhardware.metajnl.com/articles/10.5334/joh.2/}{my previous work} on the topic of ultrasound modules \cite{kelu124} and its \href{http://doi.org/10.5281/zenodo.377054}{dataset on Zenodo}.
+
+\end{itemize}
+
+ \section{Next steps}
+
+Plenty to do on the next steps! Let me know if you'd like to contribute. The current shopping list (non-exhaustive) may include:
+
+\begin{itemize}
+\item Improving the documentation, and prepare the work of the \href{https://github.com/kelu124/lit3rick}{small sibling, lit3rick}.
+\item Work on BOM costs and overall hardware design.
+\item Increase the high voltage source, and have it settable via an on-board, and ideally have a bipolar design. Including a new pulser chip as being tested on the lit3rick board, an up5k design that's getting ready.
+\item Improving the features of the onboard firmware.. and try to develop a VGA output !
+\item Work on the FTDI - so I have only used the RPi, and write something to program the flash from the RPi.
+\item Develop a small server on the host RaspberryPi to manage the board and deliver to several possible users.
+\end{itemize}
+
+
+\bibliographystyle{unsrt}  
+%\bibliography{references}  %%% Remove comment to use the external .bib file (using bibtex).
+%%% and comment out the ``thebibliography'' section.
+
+
+%%% Comment out this section when you \bibliography{references} is enabled.
+\begin{thebibliography}{1}
+
+\bibitem{kelu124}
+Luc Jonveaux 2017.
+\newblock  Arduino-like development kit for single-element ultrasound imaging. 
+\newblock In {\em  Journal of Open Hardware, 1(1), p.3}. DOI: \href{http://doi.org/10.5334/joh.2}{10.5334/joh.2}
+
+\bibitem{yosys}
+Clifford Wolf, Johann Glaser.
+\newblock  Yosys - A Free Verilog Synthesis Suite. 
+\newblock Website at {\em\href{http://www.clifford.at/yosys/}{http://www.clifford.at/yosys/} }
+
+
+\end{thebibliography}
+
+\end{document}
+
+
+% Subertley     
+                                                  
+%                   ,--.         ,--.      ,--.     
+% ,--.,--.,--,--,  /    \ ,--.--.`--' ,---.|  |,-.  
+% |  ||  ||      \|  ()  ||  .--',--.| .--'|     /  
+% '  ''  '|  ||  | \    / |  |   |  |\ `--.|  \  \  
+%  `----' `--''--'  `--'  `--'   `--' `---'`--'`--' 
+                                                  
